@@ -2,6 +2,9 @@ package au.com.vanguard.demo.weatherapi.model;
 
 import au.com.vanguard.demo.weatherapi.repository.WeatherDataRepository;
 
+/**
+ * Builder for {@link WeatherData} instances.
+ */
 public class WeatherDataBuilder {
 
     private String city;

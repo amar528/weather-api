@@ -1,5 +1,6 @@
 package au.com.vanguard.demo.weatherapi.client;
 
+import au.com.vanguard.demo.weatherapi.client.key.RoundRobinClientAPIKeyStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
-class APIKeyTest {
+class RoundRobinClientAPIKeyStrategyTest {
 
     @InjectMocks
-    private APIKey underTest;
+    private RoundRobinClientAPIKeyStrategy underTest;
 
     @Spy
     private List<String> apiKeys = Arrays.asList("key1", "key2");
