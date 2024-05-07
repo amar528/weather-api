@@ -14,5 +14,5 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OpenWeatherMapClient {
 
     @RequestMapping("/data/2.5/weather")
-    OpenWeatherResponse findWeatherData(@RequestParam("q") String... queryParameters);
+    OpenWeatherResponse findWeatherData(@RequestParam("appid") String appId, @RequestParam("q") String queryParameters);
 }
