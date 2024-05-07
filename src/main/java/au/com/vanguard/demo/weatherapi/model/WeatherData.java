@@ -1,29 +1,30 @@
 package au.com.vanguard.demo.weatherapi.model;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
 
 @Entity
-@Table
+@Table(name = "WEATHER_DATA", uniqueConstraints = {@UniqueConstraint(name = "UniqueCityAndCountry", columnNames = {"CITY", "COUNTRY"})})
 @Getter
 @Setter
 public class WeatherData {
 
     @Id
     @GeneratedValue
+    @Column(name = "ID")
     private Long id;
 
+    @Column(name = "CITY")
     private String city;
 
+    @Column(name = "COUNTRY")
     private String country;
 
+    @Column(name = "DESCRIPTION")
     private String description;
 
     /**
