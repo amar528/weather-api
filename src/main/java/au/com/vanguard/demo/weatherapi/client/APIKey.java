@@ -9,7 +9,7 @@ import java.util.List;
 @Component
 public class APIKey {
 
-    @Value("${client.api.key}")
+    @Value("${client.open-weather.key}")
     private List<String> apiKeys = new ArrayList<>();
 
     private volatile int index = 0;

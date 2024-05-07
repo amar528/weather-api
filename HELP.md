@@ -1,8 +1,3 @@
-# Read Me First
-The following was discovered as part of building this project:
-
-* The original package name 'au.com.vanguard.demo.weather-api' is invalid and this project uses 'au.com.vanguard.demo.weatherapi' instead.
-
 # Getting Started
 
 ### Reference Documentation
