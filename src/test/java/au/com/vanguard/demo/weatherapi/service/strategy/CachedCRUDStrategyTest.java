@@ -1,13 +1,18 @@
 package au.com.vanguard.demo.weatherapi.service.strategy;
 
 import au.com.vanguard.demo.weatherapi.client.OpenWeatherMapClient;
+import au.com.vanguard.demo.weatherapi.client.OpenWeatherResponse;
+import au.com.vanguard.demo.weatherapi.client.Weather;
 import au.com.vanguard.demo.weatherapi.client.key.ClientAPIKeyStrategy;
+import au.com.vanguard.demo.weatherapi.model.WeatherData;
 import au.com.vanguard.demo.weatherapi.model.WeatherDataBuilder;
 import au.com.vanguard.demo.weatherapi.model.WeatherDataRequest;
 import au.com.vanguard.demo.weatherapi.repository.WeatherDataRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,13 +41,16 @@ class CachedCRUDStrategyTest {
     @Mock
     private OpenWeatherMapClient mockOpenWeatherClient;
 
+    @Captor
+    private ArgumentCaptor<WeatherData> weatherDataCaptor;
+
     @BeforeEach
     void beforeEach() {
         underTest = new CachedCRUDStrategy(cacheSeconds, mockWeatherDataRepository, mockClientAPIKeyStrategy, mockOpenWeatherClient);
     }
 
     @Test
-    void given_persistedDataIsWithinTTL_when_getWeatherData_then_theDataIsReturned() {
+    void given_persistedDataHasNotExpired_when_getWeatherData_then_theDataIsReturned() {
 
         // given
         var city = "Melbourne";
@@ -60,6 +68,42 @@ class CachedCRUDStrategyTest {
         assertEquals(persistedData, result);
         verify(mockWeatherDataRepository).findByCityAndCountry(city, country);
         verifyNoInteractions(mockOpenWeatherClient);
+    }
+
+    @Test
+    void given_persistedDataHasExpired_when_getWeatherData_then_theDataIsRequestedAndStored() {
+
+        // given
+        var city = "Melbourne";
+        var country = "AUS";
+        var request = new WeatherDataRequest(city, country);
+        var persistedData = new WeatherDataBuilder().city(city).country(country).build();
+        var apiKey = "api-key";
+        persistedData.setCreatedDate(Instant.now().plusSeconds(10)); // expired cache range
+        given(mockWeatherDataRepository.findByCityAndCountry(city, country)).willReturn(Optional.of(persistedData));
+        given(mockClientAPIKeyStrategy.getNext()).willReturn(apiKey);
+
+        var response = new OpenWeatherResponse();
+        var weather = new Weather();
+        weather.setDescription("weather description");
+        response.getWeather().add(weather);
+        given(mockOpenWeatherClient.findWeatherData(apiKey, request.toArguments())).willReturn(response);
+
+        // when
+        var result = underTest.getWeatherData(request);
+
+        // then
+        assertNotNull(result);
+        assertEquals(persistedData, result);
+        verify(mockClientAPIKeyStrategy).getNext();
+        verify(mockWeatherDataRepository).findByCityAndCountry(city, country);
+        verify(mockOpenWeatherClient).findWeatherData(apiKey, request.toArguments());
+        verify(mockWeatherDataRepository).save(weatherDataCaptor.capture());
+
+        var capturedEntity = weatherDataCaptor.getValue();
+        assertEquals(request.getCity(), capturedEntity.getCity());
+        assertEquals(request.getCountry(), capturedEntity.getCountry());
+        assertEquals(response.getDescription(), capturedEntity.getDescription());
     }
 
 }
