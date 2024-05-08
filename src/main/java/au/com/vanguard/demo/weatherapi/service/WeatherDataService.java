@@ -1,20 +1,24 @@
 package au.com.vanguard.demo.weatherapi.service;
 
-import au.com.vanguard.demo.weatherapi.client.key.RoundRobinClientAPIKeyStrategy;
-import au.com.vanguard.demo.weatherapi.client.OpenWeatherMapClient;
-import au.com.vanguard.demo.weatherapi.repository.WeatherDataRepository;
+import au.com.vanguard.demo.weatherapi.model.WeatherData;
+import au.com.vanguard.demo.weatherapi.model.WeatherDataRequest;
+import au.com.vanguard.demo.weatherapi.service.strategy.CRUDStrategy;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 @Service
 public class WeatherDataService {
 
-    private final RoundRobinClientAPIKeyStrategy roundRobinClientApiKeyStrategy;
-    private final OpenWeatherMapClient openWeatherClient;
-    private final WeatherDataRepository weatherDataRepository;
+    private final CRUDStrategy crudStrategy;
 
-    public WeatherDataService(RoundRobinClientAPIKeyStrategy roundRobinClientApiKeyStrategy, OpenWeatherMapClient openWeatherClient, WeatherDataRepository weatherDataRepository) {
-        this.roundRobinClientApiKeyStrategy = roundRobinClientApiKeyStrategy;
-        this.openWeatherClient = openWeatherClient;
-        this.weatherDataRepository = weatherDataRepository;
+    public WeatherDataService(CRUDStrategy crudStrategy) {
+        this.crudStrategy = crudStrategy;
+    }
+
+    public WeatherData getWeatherData(@NotNull @Valid WeatherDataRequest request) {
+        return crudStrategy.getWeatherData(request);
     }
 }
