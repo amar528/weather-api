@@ -4,11 +4,15 @@ package au.com.vanguard.demo.weatherapi.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
 @Table(name = "WEATHER_DATA", uniqueConstraints = {@UniqueConstraint(name = "UniqueCityAndCountry", columnNames = {"CITY", "COUNTRY"})})
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class WeatherData {
@@ -26,6 +30,9 @@ public class WeatherData {
 
     @Column(name = "DESCRIPTION")
     private String description;
+
+    @CreatedDate
+    private Instant createdDate;
 
     /**
      * For JPA
