@@ -1,9 +1,10 @@
 package au.com.vanguard.demo.weatherapi.client;
 
 import au.com.vanguard.demo.weatherapi.exception.InvalidAPIKeyException;
+import au.com.vanguard.demo.weatherapi.exception.InvalidRequestException;
+import au.com.vanguard.demo.weatherapi.exception.TooManyRequestsException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ class OpenWeatherMapClientTest {
     }
 
     @Test
-    void givenUnauthorizedResponse_shouldThrowInvalidAPIKeyException() throws Exception {
+    void givenUnauthorized_shouldThrowInvalidAPIKeyException() throws Exception {
 
         // given valid request and valid response and body (200 OK with valid json body)
         var appId = "an-invalid-key";
@@ -78,14 +79,32 @@ class OpenWeatherMapClientTest {
 
         // when / then
         assertThrows(InvalidAPIKeyException.class, () -> underTest.findWeatherData(appId, queryParams));
+    }
 
+    @Test
+    void givenBadRequest_shouldThrowInvalidRequestException() throws Exception {
 
-        // then
-        mockOpenWeatherService.verify(exactly(1),
-                getRequestedFor(urlPathMatching("/data/2.5/weather/*"))
-                        .withQueryParam("appid", equalTo(appId))
-                        .withQueryParam("q", havingExactly("Melbourne, AUS")));
+        // given valid request and valid response and body (200 OK with valid json body)
+        var appId = "an-invalid-key";
+        var queryParams = "Melbourne, AUS";
 
+        setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.BAD_REQUEST, "open-weather-invalid-response.json", appId, queryParams);
+
+        // when / then
+        assertThrows(InvalidRequestException.class, () -> underTest.findWeatherData(appId, queryParams));
+    }
+
+    @Test
+    void givenTooManyRequests_shouldThrowTooManyRequestsException() throws Exception {
+
+        // given valid request and valid response and body (200 OK with valid json body)
+        var appId = "an-invalid-key";
+        var queryParams = "Melbourne, AUS";
+
+        setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.TOO_MANY_REQUESTS, "open-weather-invalid-response.json", appId, queryParams);
+
+        // when / then
+        assertThrows(TooManyRequestsException.class, () -> underTest.findWeatherData(appId, queryParams));
     }
 
 }
