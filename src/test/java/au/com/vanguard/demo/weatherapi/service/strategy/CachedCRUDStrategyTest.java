@@ -6,7 +6,7 @@ import au.com.vanguard.demo.weatherapi.client.Weather;
 import au.com.vanguard.demo.weatherapi.client.key.ClientAPIKeyStrategy;
 import au.com.vanguard.demo.weatherapi.model.WeatherData;
 import au.com.vanguard.demo.weatherapi.model.WeatherDataBuilder;
-import au.com.vanguard.demo.weatherapi.model.WeatherDataRequest;
+import au.com.vanguard.demo.weatherapi.model.WeatherRequest;
 import au.com.vanguard.demo.weatherapi.repository.WeatherDataRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class CachedCRUDStrategyTest {
         // given
         var city = "Melbourne";
         var country = "AUS";
-        var request = new WeatherDataRequest(city, country);
+        var request = new WeatherRequest(city, country);
         var persistedData = new WeatherDataBuilder().city(city).country(country).build();
         persistedData.setCreatedDate(Instant.now().minusSeconds(200)); // within cache range
         given(mockWeatherDataRepository.findByCityAndCountry(city, country)).willReturn(Optional.of(persistedData));
@@ -76,7 +76,7 @@ class CachedCRUDStrategyTest {
         // given
         var city = "Melbourne";
         var country = "AUS";
-        var request = new WeatherDataRequest(city, country);
+        var request = new WeatherRequest(city, country);
         var persistedData = new WeatherDataBuilder().city(city).country(country).build();
         var apiKey = "api-key";
         persistedData.setCreatedDate(Instant.now().plusSeconds(10)); // expired cache range
@@ -101,8 +101,8 @@ class CachedCRUDStrategyTest {
         verify(mockWeatherDataRepository).save(weatherDataCaptor.capture());
 
         var capturedEntity = weatherDataCaptor.getValue();
-        assertEquals(request.getCity(), capturedEntity.getCity());
-        assertEquals(request.getCountry(), capturedEntity.getCountry());
+        assertEquals(request.city(), capturedEntity.getCity());
+        assertEquals(request.country(), capturedEntity.getCountry());
         assertEquals(response.getDescription(), capturedEntity.getDescription());
     }
 

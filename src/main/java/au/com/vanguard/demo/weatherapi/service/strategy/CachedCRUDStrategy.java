@@ -4,7 +4,7 @@ import au.com.vanguard.demo.weatherapi.client.OpenWeatherMapClient;
 import au.com.vanguard.demo.weatherapi.client.key.ClientAPIKeyStrategy;
 import au.com.vanguard.demo.weatherapi.model.WeatherData;
 import au.com.vanguard.demo.weatherapi.model.WeatherDataBuilder;
-import au.com.vanguard.demo.weatherapi.model.WeatherDataRequest;
+import au.com.vanguard.demo.weatherapi.model.WeatherRequest;
 import au.com.vanguard.demo.weatherapi.repository.WeatherDataRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -34,10 +34,10 @@ public class CachedCRUDStrategy implements CRUDStrategy {
 
     @Transactional
     @Override
-    public WeatherData getWeatherData(@Valid WeatherDataRequest request) {
+    public WeatherData getWeatherData(@Valid WeatherRequest request) {
 
         var now = Instant.now();
-        var maybeCached = weatherDataRepository.findByCityAndCountry(request.getCity(), request.getCountry());
+        var maybeCached = weatherDataRepository.findByCityAndCountry(request.city(), request.country());
 
         if (maybeCached.isPresent()) {
             // we have persisted data.  test the cache validity / TTL
@@ -61,8 +61,8 @@ public class CachedCRUDStrategy implements CRUDStrategy {
 
         var weatherResponse = openWeatherClient.findWeatherData(apiKey, arguments);
 
-        var weatherData = new WeatherDataBuilder().city(request.getCity())
-                .country(request.getCountry())
+        var weatherData = new WeatherDataBuilder().city(request.city())
+                .country(request.country())
                 .description(weatherResponse.getDescription())
                 .build();
 

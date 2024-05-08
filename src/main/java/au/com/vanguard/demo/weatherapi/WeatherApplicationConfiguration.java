@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories
 @EnableJpaAuditing
 @EnableFeignClients
-public class ApplicationConfiguration {
+public class WeatherApplicationConfiguration {
 }

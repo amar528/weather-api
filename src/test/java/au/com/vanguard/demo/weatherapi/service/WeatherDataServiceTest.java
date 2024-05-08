@@ -1,7 +1,7 @@
 package au.com.vanguard.demo.weatherapi.service;
 
 import au.com.vanguard.demo.weatherapi.model.WeatherDataBuilder;
-import au.com.vanguard.demo.weatherapi.model.WeatherDataRequest;
+import au.com.vanguard.demo.weatherapi.model.WeatherRequest;
 import au.com.vanguard.demo.weatherapi.service.strategy.CRUDStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +24,8 @@ class WeatherDataServiceTest {
 
     @Test
     void shouldGetWeatherData() {
-        var request = new WeatherDataRequest("London", "UK");
-        var weatherData = new WeatherDataBuilder().city(request.getCity()).country(request.getCountry()).build();
+        var request = new WeatherRequest("London", "UK");
+        var weatherData = new WeatherDataBuilder().city(request.city()).country(request.country()).build();
         given(mockCRUDStrategy.getWeatherData(request)).willReturn(weatherData);
 
         // when
