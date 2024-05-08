@@ -1,5 +1,6 @@
 package au.com.vanguard.demo.weatherapi.client;
 
+import au.com.vanguard.demo.weatherapi.exception.InvalidAPIKeyException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import feign.FeignException;
@@ -67,7 +68,7 @@ class OpenWeatherMapClientTest {
     }
 
     @Test
-    void givenUnauthorizedResponse_shouldThrow401() throws Exception {
+    void givenUnauthorizedResponse_shouldThrowInvalidAPIKeyException() throws Exception {
 
         // given valid request and valid response and body (200 OK with valid json body)
         var appId = "an-invalid-key";
@@ -75,12 +76,9 @@ class OpenWeatherMapClientTest {
 
         setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.UNAUTHORIZED, "open-weather-invalid-response.json", appId, queryParams);
 
-        // when
-        try {
-            underTest.findWeatherData(appId, queryParams);
-        } catch (FeignException.FeignClientException e) {
-            assertTrue(e.getMessage().contains("401"));
-        }
+        // when / then
+        assertThrows(InvalidAPIKeyException.class, () -> underTest.findWeatherData(appId, queryParams));
+
 
         // then
         mockOpenWeatherService.verify(exactly(1),
