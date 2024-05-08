@@ -2,6 +2,7 @@ package au.com.vanguard.demo.weatherapi.client;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,7 @@ import java.io.IOException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.nio.charset.Charset.defaultCharset;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.util.StreamUtils.copyToString;
 
 @SpringBootTest
@@ -45,7 +45,7 @@ class OpenWeatherMapClientTest {
         var appId = "abcde01234";
         var queryParams = "Melbourne, AUS";
 
-        setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.OK, "open-weather-response-1.json", appId, queryParams);
+        setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.OK, "open-weather-valid-response.json", appId, queryParams);
 
         // when
         OpenWeatherResponse openWeatherResponse = underTest.findWeatherData(appId, queryParams);
@@ -59,6 +59,30 @@ class OpenWeatherMapClientTest {
         assertEquals("Drizzle", weatherResponse.getMain());
         assertEquals("light intensity drizzle", weatherResponse.getDescription());
 
+        mockOpenWeatherService.verify(exactly(1),
+                getRequestedFor(urlPathMatching("/data/2.5/weather/*"))
+                        .withQueryParam("appid", equalTo(appId))
+                        .withQueryParam("q", havingExactly("Melbourne, AUS")));
+
+    }
+
+    @Test
+    void givenUnauthorizedResponse_shouldThrow401() throws Exception {
+
+        // given valid request and valid response and body (200 OK with valid json body)
+        var appId = "an-invalid-key";
+        var queryParams = "Melbourne, AUS";
+
+        setupMockOpenWeatherResponse(mockOpenWeatherService, HttpStatus.UNAUTHORIZED, "open-weather-invalid-response.json", appId, queryParams);
+
+        // when
+        try {
+            underTest.findWeatherData(appId, queryParams);
+        } catch (FeignException.FeignClientException e) {
+            assertTrue(e.getMessage().contains("401"));
+        }
+
+        // then
         mockOpenWeatherService.verify(exactly(1),
                 getRequestedFor(urlPathMatching("/data/2.5/weather/*"))
                         .withQueryParam("appid", equalTo(appId))

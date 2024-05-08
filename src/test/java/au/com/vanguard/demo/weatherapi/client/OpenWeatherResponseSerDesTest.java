@@ -37,7 +37,7 @@ class OpenWeatherResponseSerDesTest {
     @Test
     void shouldDeserialize() throws Exception {
 
-        var result = mapper.readValue(Paths.get("target/test-classes/open-weather-response-1.json").toFile(), OpenWeatherResponse.class);
+        var result = mapper.readValue(Paths.get("target/test-classes/open-weather-valid-response.json").toFile(), OpenWeatherResponse.class);
         assertNotNull(result);
     }
 
