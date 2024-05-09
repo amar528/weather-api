@@ -72,12 +72,16 @@ The layering of the application is as follows:
             -> Service -> CRUD Strategy -> Repository
                                         -> Open Weather Feign Client`
 
-We can replace the CRUD strategy implementation without affecting the upper layers, as long as the
-interface specification would hold for future requirements.
+We can replace the CRUD strategy implementation without affecting the other layers, as long as the
+interface specification would hold for future requirements.  For example, we could switch to
+a @Cache implementation, or use Redis.
 
 Additionally, the API Key Interceptor utilises the APIKeyValidator.
 A simple configuration injected approach is used to verify the request header api-key value.
 This could be replaced with Spring Security, or another implementation of the strategy interface.
+
+Likewise, the client layer uses a strategy implementation that utilises a simple round-robin
+approach using pre configured keys (via `application.properties`)
 
 ## Approach
 The Open Weather API was investigated using a Rest Client (Rapid API on Mac OS)
@@ -90,6 +94,11 @@ These were modelled in a ErrorDecoder instance, which throws the appropriate Exc
 The ErrorDecoder plugs into the OpenFeign (REST client) framework.
 The exceptions are handled via a @ControllerAdvice exception handler, which maps each exception 
 to a corresponding HTTP/REST response, back to the client.
+
+Upon reading the API documentation, I found that the external API returns HTTP 429 when too many
+requests are performed, and that the weather data is effectively kept for 10 minutes maximum.
+This pointed me in the direction of having a TTL on the persisted data that is to be stored.
+Having a configurable threshold to check when an item is requested was the initial design idea.
 
 The happy path approach, if the request is successfully validated, will delegate the request to the
 CachedCRUDStrategy.  The idea behind this strategy implementation is to first hit the DB, to see if we
@@ -105,7 +114,7 @@ a DTO representation for the client.
 - Builder - The WeatherDataBuilder handles construction of WeatherData model instances.
 - Strategy - We have strategies for the CRUD layer, and the API key handling for the service and client.
 - Delegate - API delegates to adapter and service. The service delegates to the CRUD strategy.
-- Facade - The service layer provides a facade to the business logic, persistence and client layers.
+- Facade - The service and strategy layers provides a facade to the business logic, persistence and client layers.
 - Adapter - An adapter class handles construction of API requests and responses from/to API arguments and model
 data respectively.
 
@@ -135,14 +144,19 @@ The report is available under target/site/jacoco/index.html
 
 Given further time, I would have liked to investigate and improve:
 
-- API Key authentication could be achieved using Spring Security
+- Could replace DB cache with EHCache, or other @Cacheable implementation.
+- API Key authentication could be achieved using Spring Security.
 - Spring Integration. Is there a nicer way of implementing proxy-type
   microservices such as this? e.g. similar to Camel routes, transformation and persistence.
 - Fallback approaches - Feign has some nice fallback patterns that can be used
   to provide default responses in case of certain error conditions.
-- Hystrix - add circuit breaker in case of repeated errors from the downstream service
+- Hystrix - add circuit breaker in case of repeated errors from the downstream service.
+- Add docker-compose file to quickly bring up the service and database, storage requirements.
 - Investigate newer Spring Cloud components that I am not yet aware of.
 - Investigate and learn Cloud deployment integration options.
 - Learn more about build packs, for building the Docker image.
 - Investigate Jenkins build pipeline options.
-- Investigate would to implement a similar solution using Python and modern frameworks ? Is it easier?
+- Investigate implementing a similar solution using Python and modern frameworks. Less code? 
+
+## Licensing
+This project is licensed using the Apache 2.0 licence (https://www.apache.org/licenses/LICENSE-2.0.html)
