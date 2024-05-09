@@ -157,3 +157,6 @@ Given further time, I would have liked to investigate and improve:
 - Learn more about build packs, for building the Docker image.
 - Investigate Jenkins build pipeline options.
 - Investigate implementing a similar solution using Python and modern frameworks. Less code? 
+
+## Licensing
+This project is licensed using the Apache 2.0 licence (https://www.apache.org/licenses/LICENSE-2.0.html)
