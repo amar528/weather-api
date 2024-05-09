@@ -34,7 +34,7 @@ Facade - The service layer provides a facade to the persistence and client layer
 Adapter - An adapter class handles construction of API requests and responses from/to API arguments and model
 data respectively.
 
-# Testing
+## Testing
 The solution was implemented using TDD, using Mockito for mocking during Unit Tests, and also 
 Spring Data JPA tests for integration testing the JPA layer, MWeb MVC testing for testing the Controller
 layer, and also Wiremock was used to integration test the Feign Client, which utilises mocked HTTP
@@ -42,6 +42,10 @@ Testing a specific component involves mocking the collaborating classes or infra
 component directly depends upon, for example collaborating classes, or a mock HTTP server, or in-memory H2 database.
 End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
 (404, 400, 401, 429).
+
+## Code Coverage
+We use JaCoCo (maven plugin) to generate our test coverage report.
+The report is available under target/site/jacoco/index.html
 
 ## Enhancements
 
