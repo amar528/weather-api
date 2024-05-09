@@ -1,59 +1,76 @@
 # Weather API
 
 ## Welcome
-
-Welcome to the Weather API !  This simple service provides a simple wrapper API
-around the Open Weather Map service.
+Welcome to the Weather API !  This service provides a simple wrapper API
+around the Open Weather Map service (https://api.openweathermap.org)
 
 ## Build
-The project was built with Java 17 (LTS).
+The project was built with Java 17 (LTS), using maven, and developed in Intellij (community edition).
 
 To build the service:
 From the root of the project directory :
 
-Run mvnw / mvnw.cmd
+`mvnw` / `mvnw.cmd`
+
 or
+
 Run maven from the command line :
-mvn clean install
+`mvn clean install`
 
 ### Standalone
-To run the service as a standalone process :
+To run the service as a standalone java process :
 
-java -jar target/weather-api-0.0.1-SNAPSHOT.jar
+`java -jar target/weather-api-0.0.1-SNAPSHOT.jar`
 
 You can test the service via:
-
-http://localhost:8080/api/1.0/weather/London/UK
+`GET /api/1.0/weather/London/UK HTTP/1.1
+api-key: abcdefg0123456
+Host: localhost:8080`
 
 ### Docker
 To build the docker image, execute the following maven goal:
 
-mvn spring-boot:build-image
+`mvn spring-boot:build-image`
 
 To start the Docker container :
 
-docker run -d -p 8081:8080 weather-api:0.0.1-SNAPSHOT
+`docker run -d -p 8081:8080 weather-api:0.0.1-SNAPSHOT`
 
 To test the container :
 
-GET http://localhost:8081/api/1.0/weather/London/UK
+`GET /api/1.0/weather/London/UK HTTP/1.1
+api-key: abcdefg0123456
+Host: localhost:8081`
+
+(refer to api-tests for example requests)
 
 ## Design Considerations
 
 ### URL Scheme
-
 The weather resource is defined as follows:
 
-/api/1.0/weather/{city}/{country}
+`GET /api/1.0/weather/{city}/{country}`
 
 Where city is mandatory, whilst country is optional.
+
+### API Key
+The application expects a HTTP request header to validate client requests :
+`api-key = abcdefg0123456`
+
+This key is stored in the application configuration, via `application.properties`
+
+### Persistence
+The service by default uses an in-memory H2 instance.  To use persistent file storage, we can alter the 
+`spring.datasource.url` property at deployment time, for example this can be passed to a docker container
+at startup (suppose we want to mount a /db directory and store the data there:
+`docker run -v /weather-db -e JAVA_TOOL_OPTIONS='-Dspring.datasource.url=jdbc:h2:file:/weather-db;AUTO_SERVER=TRUE;`
 
 ### Layering
 The layering of the application is as follows:
 
-Controller -> Adapter
-           -> Service -> CRUD Strategy -> Repository
-                                       -> Open Weather Feign Client
+`Controller -> Adapter
+            -> Service -> CRUD Strategy -> Repository
+                                        -> Open Weather Feign Client`
 
 We can replace the CRUD strategy implementation without affecting the upper layers, as long as the
 interface specification would hold for future requirements.
@@ -64,12 +81,15 @@ This could be replaced with Spring Security, or another implementation of the st
 
 ## Approach
 The Open Weather API was investigated using a Rest Client (Rapid API on Mac OS)
-API keys were generated, and added to the Spring Config.
-I explored calling the API with different parameters, and discovered that
-the Country was mandatory, so this was mirrored in this API design.
-I looked at the error cases and possible HTTP responses that can result from calling this API.
-These were modelled and handled in a ErrorDecoder instance, which plugs into the OpenFeign (REST client) framework.
+API keys were generated, and added to the Spring Boot configuration (application.properties)
 
+This API was explored calling the API with different parameters, and I discovered that
+the City was mandatory, whilst Country is not. So this was mirrored in this API design.
+I looked at the error cases and possible HTTP responses that can result from calling this API.
+These were modelled and handled in a ErrorDecoder instance, which throws the appropriate Exception.
+The ErrorDecoder plugs into the OpenFeign (REST client) framework.
+The exceptions are handled via a @ControllerAdvice exception handler, which maps each exception 
+to a corresponding HTTP/REST response.
 
 ## Design Patterns Used
 
@@ -86,13 +106,16 @@ The solution was implemented using TDD, using :
 - Spring Data JPA tests for integration testing the JPA layer / Spring Data repositories
 - Web MVC testing for testing the Controller and Exception handling, JSON Ser/Des
 - Wiremock was used to integration test the Feign Client, which provides mocked HTTP responses
-- 
+
 Testing a specific component involves mocking the collaborating classes or infrastructure that the
 component directly depends upon, for example collaborating classes, or a mock HTTP server, or in-memory H2 database.
 
 End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
-(404, 400, 401, 429)
-These tests are available under:
+`{404, 400, 401, 429}`
+
+These tests are available in HTTP Archive format under:
+`/api-tests/weather-api.har`
+(please note these are set to test against localhost:8081)
 
 ## Code Coverage
 We use JaCoCo (maven plugin) to generate our test coverage report.
