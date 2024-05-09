@@ -86,10 +86,18 @@ API keys were generated, and added to the Spring Boot configuration (application
 This API was explored calling the API with different parameters, and I discovered that
 the City was mandatory, whilst Country is not. So this was mirrored in this API design.
 I looked at the error cases and possible HTTP responses that can result from calling this API.
-These were modelled and handled in a ErrorDecoder instance, which throws the appropriate Exception.
+These were modelled in a ErrorDecoder instance, which throws the appropriate Exception.
 The ErrorDecoder plugs into the OpenFeign (REST client) framework.
 The exceptions are handled via a @ControllerAdvice exception handler, which maps each exception 
-to a corresponding HTTP/REST response.
+to a corresponding HTTP/REST response, back to the client.
+
+The happy path approach, if the request is successfully validated, will delegate the request to the
+CachedCRUDStrategy.  The idea behind this strategy implementation is to first hit the DB, to see if we
+have a match for that city, city/country combination.  If we do, the TTL is checked against the current
+time.  We have a configured threshold that gives us the ability to expire persisted weather data.
+If the item isn't in the DB, or it has expired, then we will call the Open Weather API (via Feign Client),
+translate to our JPA entity WeatherData, and then persist this data. The data is adapted back to
+a DTO representation for the client.
 
 ## Design Patterns Used
 
