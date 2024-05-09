@@ -5,7 +5,7 @@ Welcome to the Weather API !  This service provides a simple wrapper API
 around the Open Weather Map service (https://api.openweathermap.org)
 
 ## Build
-The project was built with Java 17 (LTS), using maven, and developed in Intellij (community edition).
+The project was built by Amar Croker with Java 17 (LTS), using maven, and developed in Intellij (community edition).
 
 To build the service:
 From the root of the project directory :
