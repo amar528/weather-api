@@ -6,8 +6,10 @@ Welcome to the Weather API !  This simple service provides a simple wrapper API
 around the Open Weather Map service.
 
 ## Build
+The project was built with Java 17 (LTS).
+
 To build the service:
-From the root of the project directory, :
+From the root of the project directory :
 
 Run mvnw / mvnw.cmd
 or
@@ -19,13 +21,34 @@ To run the service as a standalone process :
 
 java -jar target/weather-api-0.0.1-SNAPSHOT.jar
 
+You can test the service via:
+
+http://localhost:8080/api/1.0/weather/London/UK
+
 ### Docker
-The Docker image is built using the Spotify maven plugin, as part of the main build.
+To build the docker image, execute the following maven goal:
+
+mvn spring-boot:build-image
 
 To start the Docker container :
 
+docker run -d -p 8081:8080 weather-api:0.0.1-SNAPSHOT
+
+To test the container :
+
+GET http://localhost:8081/api/1.0/weather/London/UK
 
 ## Design Considerations
+
+### URL Scheme
+
+The weather resource is defined as follows:
+
+/api/1.0/weather/{city}/{country}
+
+Where city is mandatory, whilst country is optional.
+
+### Layering
 The layering of the application is as follows:
 
 Controller -> Adapter
@@ -38,8 +61,6 @@ interface specification would hold for future requirements.
 Additionally, the API Key Interceptor utilises the APIKeyValidator.
 A simple configuration injected approach is used to verify the request header api-key value.
 This could be replaced with Spring Security, or another implementation of the strategy interface.
-                                      
-
 
 ## Approach
 The Open Weather API was investigated using a Rest Client (Rapid API on Mac OS)
@@ -90,5 +111,6 @@ Given further time, I would have liked to investigate and improve:
 - Hystrix - add circuit breaker in case of repeated errors from the downstream service
 - Investigate newer Spring Cloud components that I am not yet aware of.
 - Investigate and learn Cloud deployment integration options.
+- Investigate build packs, for building Docker image.
 - Investigate new Jenkins build pipeline options.
 - How would you implement a similar solution using Python and modern frameworks ? Is it easier?
