@@ -2,16 +2,13 @@ package au.com.vanguard.demo.weatherapi.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
 
-import java.io.InputStream;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class OpenWeatherResponseSerDesTest {
 
@@ -39,6 +36,24 @@ class OpenWeatherResponseSerDesTest {
 
         var result = mapper.readValue(Paths.get("target/test-classes/open-weather-valid-response.json").toFile(), OpenWeatherResponse.class);
         assertNotNull(result);
+
+        var expected = new OpenWeatherResponse();
+        var weather = new Weather();
+        expected.getWeather().add(weather);
+        weather.setId("300");
+        weather.setIcon("09d");
+        weather.setMain("Drizzle");
+        weather.setDescription("light intensity drizzle");
+
+        assertNotNull(result.getWeather());
+        assertEquals(1, result.getWeather().size());
+        Weather actual = result.getWeather().get(0);
+        assertEquals(weather.getId(), actual.getId());
+        assertEquals(weather.getMain(), actual.getMain());
+        assertEquals(weather.getDescription(), actual.getDescription());
+        assertEquals(weather.getIcon(), actual.getIcon());
+
+
     }
 
 }
