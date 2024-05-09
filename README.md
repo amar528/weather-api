@@ -101,12 +101,12 @@ a DTO representation for the client.
 
 ## Design Patterns Used
 
-Filter / Chain Of Command - We use an Interceptor to validate that all requests have a valid API key.
-Builder - The WeatherDataBuilder handles construction of WeatherData model instances.
-Strategy - We have strategies for the CRUD layer, and the API key handling for the service and client.
-Delegate - API delegates to adapter and service. The service delegates to the CRUD strategy.
-Facade - The service layer provides a facade to the business logic, persistence and client layers.
-Adapter - An adapter class handles construction of API requests and responses from/to API arguments and model
+- Filter / Chain Of Command - We use an Interceptor to validate that all requests have a valid API key.
+- Builder - The WeatherDataBuilder handles construction of WeatherData model instances.
+- Strategy - We have strategies for the CRUD layer, and the API key handling for the service and client.
+- Delegate - API delegates to adapter and service. The service delegates to the CRUD strategy.
+- Facade - The service layer provides a facade to the business logic, persistence and client layers.
+- Adapter - An adapter class handles construction of API requests and responses from/to API arguments and model
 data respectively.
 
 ## Testing
@@ -129,7 +129,7 @@ These end-to-end tests are available in HTTP Archive format under:
 ## Code Coverage
 We use JaCoCo (maven plugin) to generate our test coverage report.
 The report is available under target/site/jacoco/index.html
-(Coverage 90%/70%)
+`(Coverage 90%/70%)`
 
 ## Enhancements
 
