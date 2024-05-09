@@ -1,6 +1,6 @@
 package au.com.vanguard.demo.weatherapi.controller;
 
-import au.com.vanguard.demo.weatherapi.exception.InvalidAPIKeyException;
+import au.com.vanguard.demo.weatherapi.exception.*;
 import au.com.vanguard.demo.weatherapi.model.WeatherAdapter;
 import au.com.vanguard.demo.weatherapi.model.WeatherDataBuilder;
 import au.com.vanguard.demo.weatherapi.model.WeatherRequest;
@@ -131,5 +131,110 @@ class WeatherControllerTest {
         verifyNoInteractions(mockWeatherAdapter);
         verifyNoInteractions(mockWeatherDataService);
 
+    }
+
+    @Test
+    void given_invalidRequest__when_getWeather_should_return400() throws Exception {
+
+        // given
+        var city = "London";
+
+        String apiKey = "api-key";
+        var request = new WeatherRequest(city, null);
+
+        doNothing().when(mockApiKeyValidator).validate(apiKey);
+        given(mockWeatherAdapter.toRequest(city, null)).willReturn(request);
+        doThrow(InvalidRequestException.class).when(mockWeatherDataService).getWeatherData(request);
+
+        // when / then
+        mvc.perform(get("/api/1.0/weather/{city}", city)
+                        .header(APIKeyValidator.HEADER_NAME, apiKey)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())));
+
+        verify(mockApiKeyValidator).validate(apiKey);
+        verify(mockWeatherAdapter).toRequest(city, null);
+        verify(mockWeatherDataService).getWeatherData(request);
+
+    }
+
+    @Test
+    void given_invalidCity__when_getWeather_should_return404() throws Exception {
+
+        // given
+        var city = "Invalid";
+
+        String apiKey = "api-key";
+        var request = new WeatherRequest(city, null);
+
+        doNothing().when(mockApiKeyValidator).validate(apiKey);
+        given(mockWeatherAdapter.toRequest(city, null)).willReturn(request);
+        doThrow(CityNotFoundException.class).when(mockWeatherDataService).getWeatherData(request);
+
+        // when / then
+        mvc.perform(get("/api/1.0/weather/{city}", city)
+                        .header(APIKeyValidator.HEADER_NAME, apiKey)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code", is(HttpStatus.NOT_FOUND.value())));
+
+        verify(mockApiKeyValidator).validate(apiKey);
+        verify(mockWeatherAdapter).toRequest(city, null);
+        verify(mockWeatherDataService).getWeatherData(request);
+    }
+
+    @Test
+    void given_tooManyRequests__when_getWeather_should_return429() throws Exception {
+
+        // given
+        var city = "Glasgow";
+
+        String apiKey = "api-key";
+        var request = new WeatherRequest(city, null);
+
+        doNothing().when(mockApiKeyValidator).validate(apiKey);
+        given(mockWeatherAdapter.toRequest(city, null)).willReturn(request);
+        doThrow(TooManyRequestsException.class).when(mockWeatherDataService).getWeatherData(request);
+
+        // when / then
+        mvc.perform(get("/api/1.0/weather/{city}", city)
+                        .header(APIKeyValidator.HEADER_NAME, apiKey)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code", is(HttpStatus.TOO_MANY_REQUESTS.value())));
+
+        verify(mockApiKeyValidator).validate(apiKey);
+        verify(mockWeatherAdapter).toRequest(city, null);
+        verify(mockWeatherDataService).getWeatherData(request);
+    }
+
+    @Test
+    void given_callToOpenWeatherFails__when_getWeather_should_return500() throws Exception {
+
+        // given
+        var city = "Glasgow";
+
+        String apiKey = "api-key";
+        var request = new WeatherRequest(city, null);
+
+        doNothing().when(mockApiKeyValidator).validate(apiKey);
+        given(mockWeatherAdapter.toRequest(city, null)).willReturn(request);
+        doThrow(ClientException.class).when(mockWeatherDataService).getWeatherData(request);
+
+        // when / then
+        mvc.perform(get("/api/1.0/weather/{city}", city)
+                        .header(APIKeyValidator.HEADER_NAME, apiKey)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code", is(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+
+        verify(mockApiKeyValidator).validate(apiKey);
+        verify(mockWeatherAdapter).toRequest(city, null);
+        verify(mockWeatherDataService).getWeatherData(request);
     }
 }
