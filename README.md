@@ -5,18 +5,43 @@
 Welcome to the Weather API !  This simple service provides a simple wrapper API
 around the Open Weather Map service.
 
-## Running
+## Build
+To build the service:
+From the root of the project directory, :
+
+Run mvnw / mvnw.cmd
+or
+Run maven from the command line :
+mvn clean install
 
 ### Standalone
+To run the service as a standalone process :
+
+java -jar target/weather-api-0.0.1-SNAPSHOT.jar
 
 ### Docker
+The Docker image is built using the Spotify maven plugin, as part of the main build.
+
+To start the Docker container :
+
 
 ## Design Considerations
 The layering of the application is as follows:
 
+Controller -> Adapter
+           -> Service -> CRUD Strategy -> Repository
+                                       -> Open Weather Feign Client
+
+We can replace the CRUD strategy implementation without affecting the upper layers, as long as the
+interface specification would hold for future requirements.
+
+Additionally, the API Key Interceptor utilises the APIKeyValidator.
+A simple configuration injected approach is used to verify the request header api-key value.
+This could be replaced with Spring Security, or another implementation of the strategy interface.
+                                      
+
 
 ## Approach
-
 The Open Weather API was investigated using a Rest Client (Rapid API on Mac OS)
 API keys were generated, and added to the Spring Config.
 I explored calling the API with different parameters, and discovered that
@@ -35,17 +60,23 @@ Adapter - An adapter class handles construction of API requests and responses fr
 data respectively.
 
 ## Testing
-The solution was implemented using TDD, using Mockito for mocking during Unit Tests, and also 
-Spring Data JPA tests for integration testing the JPA layer, MWeb MVC testing for testing the Controller
-layer, and also Wiremock was used to integration test the Feign Client, which utilises mocked HTTP
+The solution was implemented using TDD, using :
+- Mockito for mocking during Unit Tests
+- Spring Data JPA tests for integration testing the JPA layer / Spring Data repositories
+- Web MVC testing for testing the Controller and Exception handling, JSON Ser/Des
+- Wiremock was used to integration test the Feign Client, which provides mocked HTTP responses
+- 
 Testing a specific component involves mocking the collaborating classes or infrastructure that the
 component directly depends upon, for example collaborating classes, or a mock HTTP server, or in-memory H2 database.
+
 End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
-(404, 400, 401, 429).
+(404, 400, 401, 429)
+These tests are available under:
 
 ## Code Coverage
 We use JaCoCo (maven plugin) to generate our test coverage report.
 The report is available under target/site/jacoco/index.html
+(Coverage 90%/70%)
 
 ## Enhancements
 
@@ -60,3 +91,4 @@ Given further time, I would have liked to investigate and improve:
 - Investigate newer Spring Cloud components that I am not yet aware of.
 - Investigate and learn Cloud deployment integration options.
 - Investigate new Jenkins build pipeline options.
+- How would you implement a similar solution using Python and modern frameworks ? Is it easier?
