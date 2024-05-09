@@ -86,24 +86,33 @@ API keys were generated, and added to the Spring Boot configuration (application
 This API was explored calling the API with different parameters, and I discovered that
 the City was mandatory, whilst Country is not. So this was mirrored in this API design.
 I looked at the error cases and possible HTTP responses that can result from calling this API.
-These were modelled and handled in a ErrorDecoder instance, which throws the appropriate Exception.
+These were modelled in a ErrorDecoder instance, which throws the appropriate Exception.
 The ErrorDecoder plugs into the OpenFeign (REST client) framework.
 The exceptions are handled via a @ControllerAdvice exception handler, which maps each exception 
-to a corresponding HTTP/REST response.
+to a corresponding HTTP/REST response, back to the client.
+
+The happy path approach, if the request is successfully validated, will delegate the request to the
+CachedCRUDStrategy.  The idea behind this strategy implementation is to first hit the DB, to see if we
+have a match for that city, city/country combination.  If we do, the TTL is checked against the current
+time.  We have a configured threshold that gives us the ability to expire persisted weather data.
+If the item isn't in the DB, or it has expired, then we will call the Open Weather API (via Feign Client),
+translate to our JPA entity WeatherData, and then persist this data. The data is adapted back to
+a DTO representation for the client.
 
 ## Design Patterns Used
 
-Builder Pattern - The WeatherDataBuilder handles construction of WeatherData model instances.
+Filter / Chain Of Command - We use an Interceptor to validate that all requests have a valid API key.
+Builder - The WeatherDataBuilder handles construction of WeatherData model instances.
 Strategy - We have strategies for the CRUD layer, and the API key handling for the service and client.
 Delegate - API delegates to adapter and service. The service delegates to the CRUD strategy.
-Facade - The service layer provides a facade to the persistence and client layers, abstracting all the detail.
+Facade - The service layer provides a facade to the business logic, persistence and client layers.
 Adapter - An adapter class handles construction of API requests and responses from/to API arguments and model
 data respectively.
 
 ## Testing
 The solution was implemented using TDD, using :
-- Mockito for mocking during Unit Tests
-- Spring Data JPA tests for integration testing the JPA layer / Spring Data repositories
+- Mockito for mocking with Unit Tests (JUnit Jupiter)
+- Spring Data JPA tests for integration testing the JPA layer / Spring Data repositories and queries
 - Web MVC testing for testing the Controller and Exception handling, JSON Ser/Des
 - Wiremock was used to integration test the Feign Client, which provides mocked HTTP responses
 
@@ -113,7 +122,7 @@ component directly depends upon, for example collaborating classes, or a mock HT
 End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
 `{404, 400, 401, 429}`
 
-These tests are available in HTTP Archive format under:
+These end-to-end tests are available in HTTP Archive format under:
 `/api-tests/weather-api.har`
 (please note these are set to test against localhost:8081)
 
@@ -134,6 +143,6 @@ Given further time, I would have liked to investigate and improve:
 - Hystrix - add circuit breaker in case of repeated errors from the downstream service
 - Investigate newer Spring Cloud components that I am not yet aware of.
 - Investigate and learn Cloud deployment integration options.
-- Investigate build packs, for building Docker image.
-- Investigate new Jenkins build pipeline options.
-- How would you implement a similar solution using Python and modern frameworks ? Is it easier?
+- Learn more about build packs, for building the Docker image.
+- Investigate Jenkins build pipeline options.
+- Investigate would to implement a similar solution using Python and modern frameworks ? Is it easier?

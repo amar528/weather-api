@@ -5,6 +5,9 @@ import feign.Response;
 import feign.codec.ErrorDecoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Maps Open Weather Service response codes to Exceptions.
+ */
 @Component
 public class ClientErrorDecoder implements ErrorDecoder {
     @Override

@@ -22,7 +22,7 @@ public class WeatherData {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "CITY")
+    @Column(name = "CITY", nullable = false)
     private String city;
 
     @Column(name = "COUNTRY")

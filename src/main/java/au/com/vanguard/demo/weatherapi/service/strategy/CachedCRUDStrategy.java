@@ -57,10 +57,12 @@ public class CachedCRUDStrategy implements CRUDStrategy {
         // the api key for the service
         var apiKey = clientAPIKeyStrategy.getNext();
 
+        // Call Open Weather API via Feign
         var arguments = request.toArguments();
 
         var weatherResponse = openWeatherClient.findWeatherData(apiKey, arguments);
 
+        // Translate to our model and save it
         var weatherData = new WeatherDataBuilder().city(request.city())
                 .country(request.country())
                 .description(weatherResponse.getDescription())
