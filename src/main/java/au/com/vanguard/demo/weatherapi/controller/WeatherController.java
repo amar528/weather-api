@@ -5,6 +5,10 @@ import au.com.vanguard.demo.weatherapi.model.WeatherResponse;
 import au.com.vanguard.demo.weatherapi.service.WeatherDataService;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Our single entry point into the service.
+ * Provides a single GET endpoint for obtaining weather data by city, or city and country.
+ */
 @RestController
 @RequestMapping("/api/1.0")
 public class WeatherController {

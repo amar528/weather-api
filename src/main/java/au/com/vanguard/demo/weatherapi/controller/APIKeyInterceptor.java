@@ -6,6 +6,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * Interceptor that validates the API key, which is expected as a HTTP header.
+ */
 @Component
 public class APIKeyInterceptor implements HandlerInterceptor {
 
