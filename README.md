@@ -42,6 +42,8 @@ To test the container :
 api-key: abcdefg0123456
 Host: localhost:8081`
 
+(refer to api-tests for example requests)
+
 ## Design Considerations
 
 ### URL Scheme
@@ -55,14 +57,20 @@ Where city is mandatory, whilst country is optional.
 The application expects a HTTP request header to validate client requests :
 `api-key = abcdefg0123456`
 
-This key is stored in the application configuration, via application.properties
+This key is stored in the application configuration, via `application.properties`
+
+### Persistence
+The service by default uses an in-memory H2 instance.  To use persistent file storage, we can alter the 
+`spring.datasource.url` property at deployment time, for example this can be passed to a docker container
+at startup (suppose we want to mount a /db directory and store the data there:
+`docker run -v /weather-db -e JAVA_TOOL_OPTIONS='-Dspring.datasource.url=jdbc:h2:file:/weather-db;AUTO_SERVER=TRUE;`
 
 ### Layering
 The layering of the application is as follows:
 
-Controller -> Adapter
-           -> Service -> CRUD Strategy -> Repository
-                                       -> Open Weather Feign Client
+`Controller -> Adapter
+            -> Service -> CRUD Strategy -> Repository
+                                        -> Open Weather Feign Client`
 
 We can replace the CRUD strategy implementation without affecting the upper layers, as long as the
 interface specification would hold for future requirements.
@@ -74,12 +82,14 @@ This could be replaced with Spring Security, or another implementation of the st
 ## Approach
 The Open Weather API was investigated using a Rest Client (Rapid API on Mac OS)
 API keys were generated, and added to the Spring Boot configuration (application.properties)
-I explored calling the API with different parameters, and discovered that
+
+This API was explored calling the API with different parameters, and I discovered that
 the City was mandatory, whilst Country is not. So this was mirrored in this API design.
 I looked at the error cases and possible HTTP responses that can result from calling this API.
-These were modelled and handled in a ErrorDecoder instance, which plugs into the OpenFeign (REST client) framework.
-The exceptions are handled via a @ControllerAdvice exception handler, which maps to a corresponding
-HTTP/REST response.
+These were modelled and handled in a ErrorDecoder instance, which throws the appropriate Exception.
+The ErrorDecoder plugs into the OpenFeign (REST client) framework.
+The exceptions are handled via a @ControllerAdvice exception handler, which maps each exception 
+to a corresponding HTTP/REST response.
 
 ## Design Patterns Used
 
@@ -101,8 +111,11 @@ Testing a specific component involves mocking the collaborating classes or infra
 component directly depends upon, for example collaborating classes, or a mock HTTP server, or in-memory H2 database.
 
 End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
-(404, 400, 401, 429)
-These tests are available under:
+`{404, 400, 401, 429}`
+
+These tests are available in HTTP Archive format under:
+`/api-tests/weather-api.har`
+(please note these are set to test against localhost:8081)
 
 ## Code Coverage
 We use JaCoCo (maven plugin) to generate our test coverage report.

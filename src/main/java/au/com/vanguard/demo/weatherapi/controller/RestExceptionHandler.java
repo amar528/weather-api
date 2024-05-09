@@ -2,6 +2,7 @@ package au.com.vanguard.demo.weatherapi.controller;
 
 import au.com.vanguard.demo.weatherapi.exception.*;
 import au.com.vanguard.demo.weatherapi.model.ErrorResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,12 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, new ErrorResponse(HttpStatus.TOO_MANY_REQUESTS.value(), "Too many requests. Please try again later.", Instant.now()), new HttpHeaders(), HttpStatus.TOO_MANY_REQUESTS, request);
     }
 
-    @ExceptionHandler(value = {InvalidRequestException.class, IllegalStateException.class})
+    @ExceptionHandler(value = {ConstraintViolationException.class})
+    protected ResponseEntity<Object> handleValidationFailure(ConstraintViolationException ex, WebRequest request) {
+        return handleExceptionInternal(ex, new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Invalid request: + " + ex.getMessage(), Instant.now()), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {InvalidRequestException.class})
     protected ResponseEntity<Object> handleBadRequest(InvalidRequestException ex, WebRequest request) {
         return handleExceptionInternal(ex, new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Invalid request", Instant.now()), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }

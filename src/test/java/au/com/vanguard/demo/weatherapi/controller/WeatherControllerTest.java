@@ -7,6 +7,7 @@ import au.com.vanguard.demo.weatherapi.model.WeatherRequest;
 import au.com.vanguard.demo.weatherapi.model.WeatherResponse;
 import au.com.vanguard.demo.weatherapi.service.WeatherDataService;
 import au.com.vanguard.demo.weatherapi.service.key.APIKeyValidator;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +104,7 @@ class WeatherControllerTest {
     }
 
     @Test
-    void given_invalidAPIKey__when_getWeather_should_return401() throws Exception {
+    void given_invalidAPIKey_when_getWeather_should_return401() throws Exception {
 
         // given
         var city = "London";
@@ -134,7 +135,7 @@ class WeatherControllerTest {
     }
 
     @Test
-    void given_invalidRequest__when_getWeather_should_return400() throws Exception {
+    void given_invalidRequest_when_getWeather_should_return400() throws Exception {
 
         // given
         var city = "London";
@@ -161,7 +162,7 @@ class WeatherControllerTest {
     }
 
     @Test
-    void given_invalidCity__when_getWeather_should_return404() throws Exception {
+    void given_invalidCity_when_getWeather_should_return404() throws Exception {
 
         // given
         var city = "Invalid";
@@ -232,6 +233,32 @@ class WeatherControllerTest {
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code", is(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+
+        verify(mockApiKeyValidator).validate(apiKey);
+        verify(mockWeatherAdapter).toRequest(city, null);
+        verify(mockWeatherDataService).getWeatherData(request);
+    }
+
+    @Test
+    void given_validationFailure_when_getWeather_should_return400() throws Exception {
+
+        // given
+        var city = "Glasgow";
+
+        String apiKey = "api-key";
+        var request = new WeatherRequest(city, null);
+
+        doNothing().when(mockApiKeyValidator).validate(apiKey);
+        given(mockWeatherAdapter.toRequest(city, null)).willReturn(request);
+        doThrow(ConstraintViolationException.class).when(mockWeatherDataService).getWeatherData(request);
+
+        // when / then
+        mvc.perform(get("/api/1.0/weather/{city}", city)
+                        .header(APIKeyValidator.HEADER_NAME, apiKey)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is(HttpStatus.BAD_REQUEST.value())));
 
         verify(mockApiKeyValidator).validate(apiKey);
         verify(mockWeatherAdapter).toRequest(city, null);
