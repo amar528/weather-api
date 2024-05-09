@@ -39,12 +39,15 @@ The solution was implemented using TDD, using Mockito for mocking during Unit Te
 Spring Data JPA tests for integration testing the JPA layer, MWeb MVC testing for testing the Controller
 layer, and also Wiremock was used to integration test the Feign Client, which utilises mocked HTTP
 Testing a specific component involves mocking the collaborating classes or infrastructure that the
-component depends upon. For example, 
+component directly depends upon, for example collaborating classes, or a mock HTTP server, or in-memory H2 database.
+End-to-end testing was performed using RapidAPI, with test cases for happy path, as well as error cases
+(404, 400, 401, 429).
 
 ## Enhancements
 
 Given further time, I would have liked to investigate and improve:
 
+- API Key authentication could be achieved using Spring Security
 - Spring Integration. Is there a nicer way of implementing proxy-type
   microservices such as this? e.g. similar to Camel routes, transformation and persistence.
 - Fallback approaches - Feign has some nice fallback patterns that can be used

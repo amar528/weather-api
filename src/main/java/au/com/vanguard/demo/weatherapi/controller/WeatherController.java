@@ -17,7 +17,7 @@ public class WeatherController {
         this.weatherAdapter = weatherAdapter;
     }
 
-    @GetMapping(value = "/weather/{city}/{country}", produces = "application/json")
+    @GetMapping(value = {"/weather/{city}", "/weather/{city}/{country}"}, produces = "application/json")
     public WeatherResponse getWeather(@PathVariable(name = "city") String city,
                                       @PathVariable(name = "country", required = false) String country) {
 
