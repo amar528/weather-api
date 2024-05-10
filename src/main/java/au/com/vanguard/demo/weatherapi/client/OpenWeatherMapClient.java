@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @see <a href="http://samples.openweathermap.org/">
  * @see <a href="https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/">
  */
-@FeignClient(name = "openWeatherClient", url = "${client.open-weather.url}")
+@FeignClient(name = "open-weather-service")
 public interface OpenWeatherMapClient {
 
     @RequestMapping("/data/2.5/weather")
